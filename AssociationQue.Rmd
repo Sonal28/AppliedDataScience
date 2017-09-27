@@ -1,0 +1,64 @@
+---
+title: "AssociationQue"
+author: "Sonal"
+date: "25 September 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(plyr)
+library(knitr)
+library(arules)
+library(arulesViz)
+library(grid)
+library(ggplot2)
+
+# Read in csv file and replace all blank space with NA
+ChronicDiseaseIndicator = read.csv(file='C:/Users/sonal/Desktop/Applied Data Science/Project/Datasets/mortality/2015_data.csv', header=T)
+
+# Get size of file
+expend_11.size = dim(ChronicDiseaseIndicator)
+
+#Extract selected column from the dataset
+ChronicDiseaseMortality = ChronicDiseaseIndicator[,c(19,25,26,28)]
+
+# create a new column with the four columns collapsed together
+ChronicDiseaseMortality$MergedColumn = apply( ChronicDiseaseMortality[ , c(1,2,3,4) ] , 1 , paste , collapse = "," )
+
+# Write full data file
+write.csv(ChronicDiseaseMortality, file = "C:/Users/sonal/Desktop/Applied Data Science/Project/R/DiseaseAssociation.csv",row.names=FALSE, na="")
+
+#Discretize all columns
+ChronicDiseaseMortality$manner_of_death <- factor(ChronicDiseaseMortality$manner_of_death)
+ChronicDiseaseMortality$X358_cause_recode <- factor(ChronicDiseaseMortality$X358_cause_recode)
+ChronicDiseaseMortality$X113_cause_recode <- factor(ChronicDiseaseMortality$X113_cause_recode)
+ChronicDiseaseMortality$X39_cause_recode <- factor(ChronicDiseaseMortality$X39_cause_recode)
+ChronicDiseaseMortality$MergedColumn <- factor(ChronicDiseaseMortality$MergedColumn)
+
+#Find association rule with default settings
+attach(ChronicDiseaseMortality)
+rules = apriori(ChronicDiseaseMortality)
+inspect(rules)
+
+plot(rules)
+plot(rules, measure=c("support","lift"), shading="confidence")
+plot(rules, method="paracoord", control=list(reorder=TRUE))
+plot(rules, shading="order", control=list(main="Two-key plot"))
+ggplot(data = ChronicDiseaseMortality, aes(x = manner_of_death, y =X39_cause_recode, color = as.factor(MergedColumn)))+ geom_point()
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
